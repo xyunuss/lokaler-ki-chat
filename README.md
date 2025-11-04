@@ -48,19 +48,20 @@ Er kombiniert eine minimalistische Weboberfläche mit **Ollama** als Backend, um
    ```bash
    ollama run gpt-oss:20b
 
-Bibliothek der Modelle: https://ollama.com/library
+Bibliothek für weitere Modelle: https://ollama.com/library
 
 3. **Projekt starten**
+   ```bash
+    # Repository klonen
+    git clone https://github.com/<dein-github-name>/lokaler-ki-chat.git
+    cd lokaler-ki-chat
 
-# Repository klonen
-git clone https://github.com/<dein-github-name>/lokaler-ki-chat.git
-cd lokaler-ki-chat
+    # Abhängigkeiten
+    pip install flask flask-cors requests PyPDF2
 
-# Abhängigkeiten
-pip install flask flask-cors requests PyPDF2
+    # Backend starten
+    python server.py
 
-# Backend starten
-python server.py
+    # Benutzen
+    index.html im Browser öffnen
 
-# Benutzen
-index.html im Browser öffnen
