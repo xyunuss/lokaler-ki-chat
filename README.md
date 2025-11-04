@@ -23,7 +23,7 @@ Er kombiniert eine minimalistische Weboberfläche mit **Ollama** als Backend, um
 -  **Chat mit lokalem KI-Modell (Ollama)**
 -  **Läuft vollständig auf der eigenen GPU / CPU**  
   → keine Internetverbindung oder Cloud-Abhängigkeit
--  **Datei-Upload (PDF, TXT, DOCX)** mit automatischer Textextraktion  
+-  **PDF Datei-Upload** mit automatischer Textextraktion  
 -  **Echtzeit-Streaming** der Antworten (Zeichenweise wie bei ChatGPT)  
 -  **Dark-/Lightmode** mit Themespeicherung  
 -  **100 % lokal & datensicher**
