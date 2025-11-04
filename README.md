@@ -1,7 +1,7 @@
 # 💻 OllamaDesk – Chatbot über eigene GPU (Flask + Ollama)
 
 Ein vollständig **lokaler KI-Chatbot**, der **über die eigene Grafikkarte (GPU)** läuft – kein API-Key, keine Cloud.  
-Er kombiniert eine minimalistische Weboberfläche mit **Ollama** als Backend, um große Sprachmodelle wie **LLaMA 3** oder **Mistral** direkt **offline auf dem eigenen Rechner** auszuführen.
+Er kombiniert eine minimalistische Weboberfläche mit **Ollama** als Backend, um große Sprachmodelle wie **LLaMA 3**, **Mistral** oder **gpt-oss** direkt **offline auf dem eigenen Rechner** auszuführen.
 
 ---
 ## 🖥️ Demo
