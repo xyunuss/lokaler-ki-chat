@@ -64,3 +64,9 @@ Bibliothek für weitere Modelle: https://ollama.com/library
     # Benutzen
     index.html im Browser öffnen
 
+---
+
+## 📜 Lizenz
+
+Veröffentlicht unter der MIT License
+© 2025 Yunus Yakup Peter Schultze
