@@ -53,8 +53,7 @@ Bibliothek für weitere Modelle: https://ollama.com/library
 3. **Projekt starten**
    ```bash
     # Repository klonen
-    git clone https://github.com/xyunuss/lokaler-ki-chat
-    cd lokaler-ki-chat
+    git clone https://github.com/xyunuss/local-ai-chat
 
     # Abhängigkeiten
     pip install flask flask-cors requests PyPDF2
