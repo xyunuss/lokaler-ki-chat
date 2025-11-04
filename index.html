@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+
+  <link rel="icon" type="image/png" href="favicon.png">
+
+  <meta charset="UTF-8" />
+  <title>Lokaler KI-Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #ffffff;
+      --fg: #1a1a1a;
+      --border: #ddd;
+      --accent-bg: #f5f5f5;
+      --accent-hover: #e0e0e0;
+      --link: #0b64d7;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f1115;
+      --fg: #e7e9ee;
+      --border: #2b2f36;
+      --accent-bg: #171a21;
+      --accent-hover: #1f2430;
+      --link: #4ea1ff;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'JetBrains Mono', monospace;
+      background-color: var(--bg);
+      color: var(--fg);
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      height: 100vh;
+      box-sizing: border-box;
+      padding: 1rem;
+    }
+
+    h1 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      margin: 0;
+      position: sticky;
+      top: 0;
+      background: var(--bg);
+      z-index: 20;
+    }
+    .spacer { flex: 1; }
+
+    select {
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-size: 0.9rem;
+      width: 100%;
+    }
+
+    .chat {
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--bg);
+      padding: 0.75rem;
+      overflow-y: auto;
+      font-size: 0.95rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      min-height: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .msg {
+      margin-bottom: 0.25rem;
+      line-height: 1.5;
+    }
+    .msg-container { display: flex; align-items: flex-start; gap: 0.6rem; max-width: 100%; }
+    .msg.user .msg-container { justify-content: flex-end; }
+    .msg.user .text {
+      background-color: #e8f0ff;
+      padding: 8px 12px; border-radius: 8px; max-width: 80%;
+      word-wrap: break-word;
+    }
+    [data-theme="dark"] .msg.user .text { background: #1b263d; }
+    .msg.ai .text {
+      background-color: #e7f7ee;
+      padding: 8px 12px; border-radius: 8px; max-width: 80%;
+      word-wrap: break-word;
+    }
+    [data-theme="dark"] .msg.ai .text { background: #133222; }
+
+    .preview-card {
+      position: relative;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--accent-bg);
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      max-width: 400px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .preview-card embed {
+      width: 100%;
+      height: 240px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .preview-card .filename {
+      font-size: 0.85rem;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    /* ❌ Entfernen-Button oben rechts */
+    .preview-card .remove-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: var(--accent-bg);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 16px;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--fg);
+      transition: background 0.2s, transform 0.2s;
+    }
+    .preview-card .remove-btn:hover {
+      background: var(--accent-hover);
+      transform: scale(1.05);
+    }
+
+    textarea {
+      flex: 1; height: 64px; resize: none;
+      border: 1px solid var(--border);
+      border-radius: 10px; background-color: var(--bg); color: var(--fg);
+      padding: 10px;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background-color: var(--accent-bg);
+      color: var(--fg);
+      padding: 0.55rem 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    button:hover { background: var(--accent-hover); }
+
+    .input-area {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+      z-index: 10;
+    }
+
+    .footer {
+      font-size: 0.75rem; color: #888;
+      border-top: 1px solid var(--border); padding-top: 0.5rem;
+      text-align: right; background: var(--bg);
+      position: sticky; bottom: 0; z-index: 5;
+    }
+
+    a { color: var(--link); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+
+<body>
+  <h1>
+    <span class="material-icons">terminal</span> Lokaler KI-Chat
+    <span class="spacer"></span>
+    <button id="themeToggle"><span class="material-icons">dark_mode</span> Theme</button>
+  </h1>
+
+  <label for="modelSelect">Modell auswählen:</label>
+  <select id="modelSelect"></select>
+
+  <div class="chat" id="chat"></div>
+
+  <div class="input-area">
+    <label for="fileInput" style="cursor:pointer;">
+      <span class="material-icons">attach_file</span>
+    </label>
+    <input type="file" id="fileInput" accept=".pdf,.txt,.docx" style="display:none;">
+    <textarea id="input" placeholder="Nachricht eingeben …"></textarea>
+    <button id="sendBtn"><span class="material-icons">send</span> Senden</button>
+  </div>
+
+  <div class="footer">© 2025 Yunus Schultze – Lokales KI-Tool</div>
+
+  <script>
+  // --- Theme ---
+  const root = document.documentElement;
+  function applyTheme(t){
+    root.setAttribute('data-theme', t);
+    localStorage.setItem('theme', t);
+  }
+  applyTheme(localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark':'light'));
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    applyTheme(root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+  });
+
+  // --- Chat Logik ---
+  let uploadedFile = null;
+  let chatHistory = [];
+
+  const chat = document.getElementById("chat");
+
+  function showFilePreview(file) {
+    const msg = document.createElement("div");
+    msg.className = "msg user";
+    msg.innerHTML = `
+      <div class="msg-container">
+        <div class="text">
+          <div class="preview-card">
+            <button class="remove-btn" title="Datei entfernen">
+              <span class="material-icons" style="font-size:16px;">close</span>
+            </button>
+            ${
+              file.type === "application/pdf"
+                ? `<embed src="${URL.createObjectURL(file)}" type="application/pdf">`
+                : `<div class="filename"><span class="material-icons">description</span>${file.name}</div>`
+            }
+            <div class="filename"><span class="material-icons">attach_file</span>${file.name}</div>
+          </div>
+        </div>
+      </div>`;
+    chat.appendChild(msg);
+    chat.scrollTop = chat.scrollHeight;
+
+    // Entfernen-Button aktivieren
+    const removeBtn = msg.querySelector(".remove-btn");
+    removeBtn.addEventListener("click", () => {
+      uploadedFile = null;
+      msg.remove();
+    });
+  }
+
+  document.getElementById("fileInput").addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    uploadedFile = file;
+    showFilePreview(file);
+  });
+
+  async function loadModels() {
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/models");
+      const data = await res.json();
+      const select = document.getElementById("modelSelect");
+      select.innerHTML = "";
+      (data.models || []).forEach(model => {
+        const opt = document.createElement("option");
+        opt.value = model;
+        opt.textContent = model;
+        select.appendChild(opt);
+      });
+    } catch {
+      alert("Konnte Modelle nicht laden. Läuft der Flask-Server?");
+    }
+  }
+
+  async function send() {
+    const input = document.getElementById("input");
+    const model = document.getElementById("modelSelect").value;
+    const msg = input.value.trim();
+    if (!msg && !uploadedFile) return;
+
+    // Nachricht anzeigen
+    if (msg) {
+      chat.innerHTML += `
+        <div class="msg user">
+          <div class="msg-container">
+            <div class="text">${msg}</div>
+          </div>
+        </div>`;
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    chatHistory.push({ role: "user", content: msg });
+    input.value = "";
+
+    const uniqueId = "ai_" + Date.now();
+    const aiMsg = document.createElement("div");
+    aiMsg.className = "msg ai";
+    aiMsg.innerHTML = `
+      <div class="msg-container">
+        <div class="text" id="${uniqueId}">Antwort wird generiert...</div>
+      </div>`;
+    chat.appendChild(aiMsg);
+    chat.scrollTop = chat.scrollHeight;
+
+    try {
+      let res;
+      if (uploadedFile) {
+        const formData = new FormData();
+        formData.append("model", model);
+        formData.append("prompt", msg);
+        formData.append("file", uploadedFile);
+        formData.append("history", JSON.stringify(chatHistory));
+        res = await fetch("http://127.0.0.1:5000/api/chat-file", {
+          method: "POST",
+          body: formData
+        });
+        uploadedFile = null;
+      } else {
+        res = await fetch("http://127.0.0.1:5000/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model, history: chatHistory })
+        });
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder("utf-8");
+      let fullText = "";
+      const textElem = document.getElementById(uniqueId);
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        fullText += chunk;
+        textElem.textContent = fullText;
+        chat.scrollTop = chat.scrollHeight;
+        await new Promise(r => requestAnimationFrame(r));
+      }
+
+      textElem.innerHTML = marked.parse(fullText);
+      chatHistory.push({ role: "assistant", content: fullText });
+    } catch {
+      document.getElementById(uniqueId).textContent = "⚠️ Fehler beim Abrufen der Antwort.";
+    }
+  }
+
+  document.getElementById("sendBtn").addEventListener("click", send);
+  document.getElementById("input").addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  });
+
+  loadModels();
+  </script>
+</body>
+</html>
