@@ -4,8 +4,15 @@ Ein vollständig lokaler KI-Chatbot mit Datei-Upload, Markdown-Rendering, Theme-
 Er nutzt **Ollama** als Backend, um LLMs lokal laufen zu lassen – **ohne API-Keys oder Cloud**.
 
 ---
-![Screenshot der Chat-UI](assets/screenshot_ui.png)
+
+## Demo
+Darkmode
+![Screenshot der Chat-UI](assets/screenshot_ui_whitemode.png)
 ---
+
+Whitemode + Modellauswahl
+Darkmode
+![Screenshot der Chat-UI](assets/screenshot_ui.png)
 
 ## 🚀 Funktionen
 - 🧠 Chat mit lokalem KI-Modell (Ollama)
