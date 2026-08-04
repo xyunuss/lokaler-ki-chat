@@ -10,6 +10,7 @@ from flask import Flask, current_app, jsonify
 
 from app.config import Config
 from app.ollama import OllamaClient, OllamaError
+from app.storage import Store
 
 __version__ = "2.0.0"
 
@@ -28,8 +29,10 @@ def create_app(config: Config | None = None) -> Flask:
         connect_timeout=cfg.connect_timeout,
         request_timeout=cfg.request_timeout,
     )
+    app.config["STORE"] = Store(cfg.data_dir / "chat.db")
 
     from app.api.chat import bp as chat_bp
+    from app.api.conversations import bp as conversations_bp
     from app.api.documents import bp as documents_bp
     from app.api.health import bp as health_bp
     from app.api.models import bp as models_bp
@@ -38,6 +41,7 @@ def create_app(config: Config | None = None) -> Flask:
     app.register_blueprint(models_bp)
     app.register_blueprint(chat_bp)
     app.register_blueprint(documents_bp)
+    app.register_blueprint(conversations_bp)
 
     @app.errorhandler(OllamaError)
     def _handle_ollama_error(exc: OllamaError):
@@ -55,3 +59,8 @@ def current_config() -> Config:
 def current_client() -> OllamaClient:
     """Ollama client of the app handling the current request."""
     return current_app.config["OLLAMA_CLIENT"]
+
+
+def current_store() -> Store:
+    """Conversation store of the app handling the current request."""
+    return current_app.config["STORE"]
