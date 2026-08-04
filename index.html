@@ -479,8 +479,9 @@
           if (done) break;
           const chunk = decoder.decode(value, { stream: true });
           fullText += chunk;
+          // marked already highlights via the `highlight` option above, so
+          // there is nothing left to do here per chunk.
           aiContentDiv.innerHTML = marked.parse(fullText);
-          hljs.highlightAll(); // Re-highlight code blocks
           scrollToBottom();
         }
         
