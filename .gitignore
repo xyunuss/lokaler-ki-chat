@@ -1,5 +1,18 @@
+# Python
 __pycache__/
-uploads/
 *.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Runtime data (SQLite database, uploaded files)
+data/
+uploads/
+
+# Environment
 .env
+
+# OS
 .DS_Store

@@ -1,0 +1,40 @@
+[project]
+name = "local-ai-chat"
+version = "2.0.0"
+description = "A local-first chat UI for Ollama: streaming, documents, conversations - no cloud, no API key."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Yunus Yakup Peter Schultze" }]
+requires-python = ">=3.10"
+dynamic = ["dependencies"]
+
+[project.urls]
+Repository = "https://github.com/xyunuss/local-ai-chat"
+
+[tool.setuptools.dynamic]
+dependencies = { file = ["requirements.txt"] }
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # import sorting
+    "B",   # bugbear
+    "UP",  # pyupgrade
+    "SIM", # simplify
+    "RUF",
+]
+ignore = [
+    "B008", # function call in default argument - fine for Flask deps
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

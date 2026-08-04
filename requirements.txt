@@ -1,0 +1,12 @@
+# Runtime dependencies.
+# Ranges instead of exact pins: this is an app people clone and run, and the
+# API surface used here is stable across these majors.
+
+Flask>=3.0,<4.0
+requests>=2.32,<3.0
+
+# PDF text extraction. PyPDF2 is discontinued; pypdf is its maintained successor.
+pypdf>=5.0,<7.0
+
+# .docx text extraction
+python-docx>=1.1,<2.0
