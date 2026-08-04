@@ -70,7 +70,12 @@ def chat_file():
 
     filename = secure_filename(file.filename)
     filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
+
+    # Read the stream once, up front: file.save() consumes it, so any read()
+    # afterwards returns b"" and non-PDF uploads reached the model empty.
+    raw = file.read()
+    with open(filepath, "wb") as fh:
+        fh.write(raw)
 
     # Text aus Datei extrahieren
     text_content = ""
@@ -79,7 +84,7 @@ def chat_file():
         for page in reader.pages:
             text_content += page.extract_text() + "\n"
     else:
-        text_content = file.read().decode("utf-8", errors="ignore")
+        text_content = raw.decode("utf-8", errors="ignore")
 
     # Kombinierter Benutzer-Input
     user_msg = f"{prompt}\n\n---\nHier ist der Inhalt der Datei '{filename}':\n{text_content[:15000]}"
