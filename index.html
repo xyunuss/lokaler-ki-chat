@@ -458,11 +458,11 @@
       
       if (!msg && !uploadedFile) return;
 
-      // User Message
-      if (msg) {
-        appendMessage('user', msg);
-      }
-      
+      // What this turn says, from the transcript's point of view. A file-only
+      // message still needs a visible bubble and a history entry.
+      const userContent = msg || `[${uploadedFile.name}]`;
+      appendMessage('user', userContent);
+
       // Reset Input
       textarea.value = "";
       textarea.style.height = 'auto';
@@ -471,9 +471,13 @@
       const uniqueId = "ai_" + Date.now();
       const aiContentDiv = appendMessage('ai', '<span class="blink">...</span>', { id: uniqueId, asHtml: true });
 
-      // Prepare Request
-      chatHistory.push({ role: "user", content: msg });
-      
+      // Chat models expect strictly alternating turns. Record the user turn
+      // with a placeholder when only a file was attached, and never leave it
+      // in the transcript without a matching reply (see catch below).
+      chatHistory.push({ role: "user", content: userContent });
+
+      let fullText = "";
+
       try {
         let res;
         if (uploadedFile) {
@@ -481,7 +485,9 @@
           formData.append("model", model);
           formData.append("prompt", msg);
           formData.append("file", uploadedFile);
-          formData.append("history", JSON.stringify(chatHistory));
+          // The server appends its own user turn (prompt + extracted text),
+          // so send the transcript without the one we just added.
+          formData.append("history", JSON.stringify(chatHistory.slice(0, -1)));
           res = await fetch("http://127.0.0.1:5000/api/chat-file", { method: "POST", body: formData });
           removeFile(); // Clear file after send
         } else {
@@ -494,7 +500,6 @@
 
         const reader = res.body.getReader();
         const decoder = new TextDecoder("utf-8");
-        let fullText = "";
 
         while (true) {
           const { value, done } = await reader.read();
@@ -511,6 +516,10 @@
 
       } catch (e) {
         aiContentDiv.textContent = "⚠️ Fehler: " + e.message;
+        // Keep what already streamed, otherwise take the user turn back out
+        // so the next request does not send two user messages in a row.
+        if (fullText) chatHistory.push({ role: "assistant", content: fullText });
+        else chatHistory.pop();
       }
     }
 
