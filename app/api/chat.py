@@ -13,20 +13,15 @@ no end marker, and no way to report a failure that happens mid-generation
 from __future__ import annotations
 
 import json
-import os
 from collections.abc import Iterator
 from typing import Any
 
 from flask import Blueprint, Response, jsonify, request, stream_with_context
-from pypdf import PdfReader
-from werkzeug.utils import secure_filename
 
-from app import current_client, current_config
+from app import current_client
 from app.ollama import DoneEvent, OllamaError, TokenEvent
 
 bp = Blueprint("chat", __name__, url_prefix="/api")
-
-DOCUMENT_CHAR_LIMIT = 15_000
 
 # Only these are forwarded to Ollama - anything else a client sends is ignored.
 ALLOWED_OPTIONS = {"temperature", "top_p", "top_k", "num_ctx", "seed", "repeat_penalty"}
@@ -114,50 +109,3 @@ def chat():
         return jsonify({"error": "At least one message is required."}), 400
 
     return _stream_response(model, messages, _clean_options(data.get("options")))
-
-
-@bp.post("/chat-file")
-def chat_file():
-    """Chat with an attached document."""
-    cfg = current_config()
-    model = request.form.get("model", "")
-    prompt = request.form.get("prompt", "")
-    uploaded = request.files.get("file")
-
-    if not model:
-        return jsonify({"error": "A model is required."}), 400
-    if not uploaded:
-        return jsonify({"error": "No file uploaded."}), 400
-
-    try:
-        history = _clean_messages(json.loads(request.form.get("history", "[]")))
-    except json.JSONDecodeError:
-        return jsonify({"error": "Malformed history."}), 400
-
-    filename = secure_filename(uploaded.filename or "upload")
-    upload_dir = cfg.data_dir / "uploads"
-    upload_dir.mkdir(parents=True, exist_ok=True)
-    filepath = upload_dir / filename
-
-    raw = uploaded.read()
-    filepath.write_bytes(raw)
-
-    text_content = ""
-    if filename.lower().endswith(".pdf"):
-        reader = PdfReader(os.fspath(filepath))
-        for page in reader.pages:
-            text_content += (page.extract_text() or "") + "\n"
-    else:
-        text_content = raw.decode("utf-8", errors="ignore")
-
-    history.append(
-        {
-            "role": "user",
-            "content": (
-                f"{prompt}\n\n---\nContents of the file '{filename}':\n"
-                f"{text_content[:DOCUMENT_CHAR_LIMIT]}"
-            ),
-        }
-    )
-
-    return _stream_response(model, history, _clean_options(request.form.get("options")))

@@ -30,12 +30,14 @@ def create_app(config: Config | None = None) -> Flask:
     )
 
     from app.api.chat import bp as chat_bp
+    from app.api.documents import bp as documents_bp
     from app.api.health import bp as health_bp
     from app.api.models import bp as models_bp
 
     app.register_blueprint(health_bp)
     app.register_blueprint(models_bp)
     app.register_blueprint(chat_bp)
+    app.register_blueprint(documents_bp)
 
     @app.errorhandler(OllamaError)
     def _handle_ollama_error(exc: OllamaError):
