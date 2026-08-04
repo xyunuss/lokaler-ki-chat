@@ -339,7 +339,15 @@
 
   <script>
     // --- Config ---
+    // Model output is rendered with innerHTML, so raw HTML coming out of the
+    // model (or echoed from an uploaded document) would execute in this page.
+    // Dropping the html tokens removes that path without a sanitizer library:
+    // markdown keeps working, embedded HTML is simply ignored.
+    const renderer = new marked.Renderer();
+    renderer.html = () => '';
+
     marked.setOptions({
+      renderer,
       highlight: function(code, lang) {
         const language = hljs.getLanguage(lang) ? lang : 'plaintext';
         return hljs.highlight(code, { language }).value;
@@ -391,16 +399,30 @@
     });
 
     function renderFilePreview() {
-      filePreviewArea.innerHTML = '';
+      filePreviewArea.replaceChildren();
       if (!uploadedFile) return;
 
       const div = document.createElement('div');
       div.className = 'file-preview';
-      div.innerHTML = `
-        <span class="material-icons" style="font-size: 18px;">description</span>
-        <span>${uploadedFile.name}</span>
-        <button onclick="removeFile()"><span class="material-icons">close</span></button>
-      `;
+
+      const icon = document.createElement('span');
+      icon.className = 'material-icons';
+      icon.style.fontSize = '18px';
+      icon.textContent = 'description';
+
+      // textContent, not innerHTML: a file name is user-controlled input.
+      const name = document.createElement('span');
+      name.textContent = uploadedFile.name;
+
+      const remove = document.createElement('button');
+      remove.title = 'Datei entfernen';
+      remove.addEventListener('click', removeFile);
+      const removeIcon = document.createElement('span');
+      removeIcon.className = 'material-icons';
+      removeIcon.textContent = 'close';
+      remove.appendChild(removeIcon);
+
+      div.append(icon, name, remove);
       filePreviewArea.appendChild(div);
     }
 
@@ -447,7 +469,7 @@
       
       // AI Placeholder
       const uniqueId = "ai_" + Date.now();
-      const aiContentDiv = appendMessage('ai', '<span class="blink">...</span>', uniqueId);
+      const aiContentDiv = appendMessage('ai', '<span class="blink">...</span>', { id: uniqueId, asHtml: true });
 
       // Prepare Request
       chatHistory.push({ role: "user", content: msg });
@@ -492,18 +514,28 @@
       }
     }
 
-    function appendMessage(role, html, id = null) {
+    function appendMessage(role, content, { id = null, asHtml = false } = {}) {
       const div = document.createElement('div');
       div.className = `msg ${role}`;
-      div.innerHTML = `
-        <div class="avatar">
-          <span class="material-icons">${role === 'user' ? 'person' : 'smart_toy'}</span>
-        </div>
-        <div class="msg-bubble" ${id ? `id="${id}"` : ''}>${html}</div>
-      `;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      const avatarIcon = document.createElement('span');
+      avatarIcon.className = 'material-icons';
+      avatarIcon.textContent = role === 'user' ? 'person' : 'smart_toy';
+      avatar.appendChild(avatarIcon);
+
+      const bubble = document.createElement('div');
+      bubble.className = 'msg-bubble';
+      if (id) bubble.id = id;
+      // Only markup this file produces itself may be inserted as HTML.
+      if (asHtml) bubble.innerHTML = content;
+      else bubble.textContent = content;
+
+      div.append(avatar, bubble);
       chat.appendChild(div);
       scrollToBottom();
-      return div.querySelector('.msg-bubble');
+      return bubble;
     }
 
     function scrollToBottom() {
