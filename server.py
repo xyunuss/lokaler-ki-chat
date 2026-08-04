@@ -82,7 +82,9 @@ def chat_file():
     if filename.lower().endswith(".pdf"):
         reader = PdfReader(filepath)
         for page in reader.pages:
-            text_content += page.extract_text() + "\n"
+            # Scanned pages carry no text layer and return None, which used to
+            # raise TypeError and turn the upload into a 500.
+            text_content += (page.extract_text() or "") + "\n"
     else:
         text_content = raw.decode("utf-8", errors="ignore")
 
