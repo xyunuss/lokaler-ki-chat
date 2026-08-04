@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-import subprocess
-
 from flask import Blueprint, jsonify
+
+from app import current_client
 
 bp = Blueprint("models", __name__, url_prefix="/api")
 
 
 @bp.get("/models")
 def list_models():
-    """Locally installed Ollama models."""
-    try:
-        result = subprocess.run(["ollama", "list"], capture_output=True, text=True, check=False)
-        lines = result.stdout.strip().split("\n")[1:]
-        models = [line.split()[0] for line in lines if line.strip()]
-        return jsonify({"models": models})
-    except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+    """Locally installed models, with size and quantization."""
+    models = current_client().list_models()
+    return jsonify({"models": [model.to_dict() for model in models]})
