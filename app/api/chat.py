@@ -73,8 +73,15 @@ def _compose_user_content(text: str, attachments: list[dict[str, Any]]) -> str:
     return f"{text}\n\n{joined}" if text else joined
 
 
-def _stream(model: str, messages: list[dict[str, str]], options: dict[str, Any], *, prelude=None,
-            on_done=None, on_partial=None) -> Response:
+def _stream(
+    model: str,
+    messages: list[dict[str, str]],
+    options: dict[str, Any],
+    *,
+    prelude=None,
+    on_done=None,
+    on_partial=None,
+) -> Response:
     """Run a generation and stream it as NDJSON.
 
     The first event is pulled before the response starts, so an unreachable

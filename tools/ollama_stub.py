@@ -148,14 +148,12 @@ class Handler(BaseHTTPRequestHandler):
         if not self._known(name):
             self._send_json({"error": f"model '{name}' not found"}, 404)
             return
-        self._send_json({"details": {"family": "llama"}, "parameters": "stop \"<|end|>\""})
+        self._send_json({"details": {"family": "llama"}, "parameters": 'stop "<|end|>"'})
 
     def _chat(self, body: dict) -> None:
         model = body.get("model") or ""
         if model and not self._known(model):
-            self._send_json(
-                {"error": f"model '{model}' not found, try pulling it first"}, 404
-            )
+            self._send_json({"error": f"model '{model}' not found, try pulling it first"}, 404)
             return
 
         # Echo the prompt back so tests can assert what the server forwarded.

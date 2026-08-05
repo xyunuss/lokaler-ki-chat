@@ -42,9 +42,7 @@ def get_conversation(conversation_id: str):
         return jsonify({"error": "Conversation not found."}), 404
 
     messages = store.list_messages(conversation_id)
-    return jsonify(
-        {**conversation.to_dict(), "messages": [m.to_dict() for m in messages]}
-    )
+    return jsonify({**conversation.to_dict(), "messages": [m.to_dict() for m in messages]})
 
 
 @bp.patch("/<conversation_id>")

@@ -55,9 +55,7 @@ def test_unreachable_ollama_explains_itself(offline_client):
 def test_request_validation(client):
     assert client.post("/api/chat", json={}).status_code == 400
     assert client.post("/api/chat", json={"model": "llama3:8b"}).status_code == 400
-    assert (
-        client.post("/api/chat", json={"model": "llama3:8b", "messages": []}).status_code == 400
-    )
+    assert client.post("/api/chat", json={"model": "llama3:8b", "messages": []}).status_code == 400
 
 
 def test_unknown_generation_options_are_dropped(client):

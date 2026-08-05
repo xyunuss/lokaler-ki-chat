@@ -223,9 +223,7 @@ class OllamaClient:
 
     def list_models(self) -> list[ModelInfo]:
         try:
-            response = self.session.get(
-                self._url("/api/tags"), timeout=(self.connect_timeout, 30)
-            )
+            response = self.session.get(self._url("/api/tags"), timeout=(self.connect_timeout, 30))
         except requests.RequestException as exc:
             raise self._unreachable(exc) from exc
 

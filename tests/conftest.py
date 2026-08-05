@@ -60,7 +60,5 @@ def offline_client(tmp_path):
 def read_events(response) -> list[dict]:
     """Parse an NDJSON response body into a list of events."""
     return [
-        json.loads(line)
-        for line in response.get_data(as_text=True).splitlines()
-        if line.strip()
+        json.loads(line) for line in response.get_data(as_text=True).splitlines() if line.strip()
     ]

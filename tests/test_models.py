@@ -85,6 +85,7 @@ def test_index_page_is_served(client):
     response = client.get("/")
     assert response.status_code == 200
     assert b"Local AI Chat" in response.data
-    assert b"Access-Control-Allow-Origin" not in response.headers.get(
-        "Access-Control-Allow-Origin", ""
-    ).encode()
+    assert (
+        b"Access-Control-Allow-Origin"
+        not in response.headers.get("Access-Control-Allow-Origin", "").encode()
+    )
