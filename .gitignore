@@ -16,3 +16,6 @@ uploads/
 
 # OS
 .DS_Store
+
+# Claude Code local tooling
+.claude/
