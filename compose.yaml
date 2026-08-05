@@ -1,0 +1,18 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      # Ollama runs on the host, where it has the GPU. On Linux, replace this
+      # with your host address or run the compose file with --network host.
+      OLLAMA_URL: http://host.docker.internal:11434
+      DATA_DIR: /data
+    volumes:
+      - chat-data:/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+volumes:
+  chat-data:
