@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Local AI Chat</title>
+  <meta name="description" content="A local-first chat UI for Ollama. No cloud, no API key.">
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+
+<body>
+  <a class="skip-link" href="#composer">Skip to input</a>
+
+  <div class="layout" id="layout">
+    <!-- Conversations -->
+    <aside class="sidebar" id="sidebar" aria-label="Conversations">
+      <div class="sidebar__head">
+        <div class="brand">
+          <span class="brand__mark" aria-hidden="true"></span>
+          <span>Local AI Chat</span>
+        </div>
+        <button class="btn btn--icon" id="closeSidebar" aria-label="Hide conversations" data-icon="close"></button>
+      </div>
+
+      <button class="btn btn--primary btn--block" id="newChat" data-icon="plus">New chat</button>
+
+      <div class="search">
+        <input type="search" id="search" placeholder="Search conversations" aria-label="Search conversations"
+          autocomplete="off">
+        <kbd>/</kbd>
+      </div>
+
+      <nav class="conversations" id="conversationList" aria-label="Conversation history"></nav>
+
+      <div class="sidebar__foot">
+        <button class="btn btn--ghost" id="openModels" data-icon="download">Models</button>
+        <button class="btn btn--ghost" id="themeToggle" data-icon="theme" aria-label="Switch theme"></button>
+      </div>
+    </aside>
+
+    <!-- Chat -->
+    <main class="main">
+      <header class="topbar">
+        <button class="btn btn--icon" id="openSidebar" aria-label="Show conversations" data-icon="menu"></button>
+
+        <label class="visually-hidden" for="modelSelect">Model</label>
+        <select id="modelSelect" class="select"></select>
+
+        <div class="topbar__spacer"></div>
+
+        <span class="pill pill--muted" id="contextInfo" hidden></span>
+        <button class="btn btn--ghost btn--small" id="openSettings" data-icon="sliders">Parameters</button>
+        <button class="btn btn--ghost btn--small" id="exportChat" data-icon="download">Export</button>
+      </header>
+
+      <div class="banner" id="banner" role="status" hidden></div>
+
+      <section class="messages" id="messages" aria-live="polite" aria-label="Conversation"></section>
+
+      <footer class="composer" id="composer">
+        <div class="attachments" id="attachments"></div>
+
+        <div class="composer__box" id="composerBox">
+          <button class="btn btn--icon" id="attachBtn" aria-label="Attach files" data-icon="paperclip"></button>
+          <input type="file" id="fileInput" multiple hidden
+            accept=".pdf,.docx,.txt,.md,.csv,.json,.yaml,.yml,.py,.js,.ts,.html,.css,.sql,.sh,.java,.go,.rs">
+
+          <label class="visually-hidden" for="prompt">Message</label>
+          <textarea id="prompt" rows="1" placeholder="Ask anything - runs on your machine"
+            autocomplete="off"></textarea>
+
+          <button class="btn btn--send" id="sendBtn" aria-label="Send message" data-icon="arrow-up"></button>
+          <button class="btn btn--stop" id="stopBtn" aria-label="Stop generating" data-icon="stop" hidden></button>
+        </div>
+
+        <p class="composer__hint">
+          <kbd>Enter</kbd> send · <kbd>Shift</kbd>+<kbd>Enter</kbd> newline · drop files anywhere
+        </p>
+      </footer>
+
+      <div class="dropzone" id="dropzone" hidden>
+        <div class="dropzone__inner">Drop files to attach</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Generation parameters -->
+  <dialog class="dialog" id="settingsDialog">
+    <form method="dialog" class="dialog__body">
+      <h2 class="dialog__title">Parameters</h2>
+      <p class="dialog__hint">Applies to this conversation.</p>
+
+      <label class="field">
+        <span class="field__label">System prompt</span>
+        <textarea id="systemPrompt" rows="4" placeholder="You are a concise assistant…"></textarea>
+      </label>
+
+      <label class="field">
+        <span class="field__label">
+          Temperature <output id="temperatureOut">0.7</output>
+        </span>
+        <input type="range" id="temperature" min="0" max="2" step="0.1" value="0.7">
+        <span class="field__hint">Lower is more focused, higher more creative.</span>
+      </label>
+
+      <label class="field">
+        <span class="field__label">Top-p <output id="topPOut">0.9</output></span>
+        <input type="range" id="topP" min="0.1" max="1" step="0.05" value="0.9">
+      </label>
+
+      <label class="field">
+        <span class="field__label">Context window</span>
+        <input type="number" id="numCtx" min="512" max="131072" step="512" placeholder="model default">
+        <span class="field__hint">Tokens the model keeps in view. Leave empty for the model's default.</span>
+      </label>
+
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" value="cancel">Cancel</button>
+        <button class="btn btn--primary" id="saveSettings" value="save">Save</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- Model manager -->
+  <dialog class="dialog" id="modelsDialog">
+    <div class="dialog__body">
+      <h2 class="dialog__title">Models</h2>
+      <p class="dialog__hint">Installed locally via Ollama.</p>
+
+      <ul class="model-list" id="modelList"></ul>
+
+      <div class="pull">
+        <input type="text" id="pullName" placeholder="e.g. llama3.2:3b" aria-label="Model to download">
+        <button class="btn btn--primary" id="pullBtn">Download</button>
+      </div>
+      <div class="progress" id="pullProgress" hidden>
+        <div class="progress__bar"><div class="progress__fill" id="pullFill"></div></div>
+        <span class="progress__label" id="pullLabel"></span>
+      </div>
+
+      <div class="dialog__actions">
+        <button class="btn btn--ghost" id="closeModels">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script src="{{ url_for('static', filename='vendor/marked.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/highlight.min.js') }}"></script>
+  <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>

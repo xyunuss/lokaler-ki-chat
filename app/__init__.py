@@ -6,7 +6,9 @@ with its own configuration instead of importing a module-level singleton.
 
 from __future__ import annotations
 
-from flask import Flask, current_app, jsonify
+from pathlib import Path
+
+from flask import Flask, current_app, jsonify, render_template
 
 from app.config import Config
 from app.ollama import OllamaClient, OllamaError
@@ -14,9 +16,18 @@ from app.storage import Store
 
 __version__ = "2.0.0"
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+
 
 def create_app(config: Config | None = None) -> Flask:
-    app = Flask(__name__)
+    # The UI is served by Flask, so it is same-origin with the API. Opening
+    # index.html from disk is what forced the old build to enable CORS for
+    # every origin.
+    app = Flask(
+        __name__,
+        static_folder=str(BASE_DIR / "static"),
+        template_folder=str(BASE_DIR / "templates"),
+    )
     cfg = config or Config.from_env()
     app.config["APP_CONFIG"] = cfg
     app.config["MAX_CONTENT_LENGTH"] = cfg.max_upload_bytes
@@ -42,6 +53,10 @@ def create_app(config: Config | None = None) -> Flask:
     app.register_blueprint(chat_bp)
     app.register_blueprint(documents_bp)
     app.register_blueprint(conversations_bp)
+
+    @app.get("/")
+    def index():
+        return render_template("index.html")
 
     @app.errorhandler(OllamaError)
     def _handle_ollama_error(exc: OllamaError):
