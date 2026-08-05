@@ -50,7 +50,9 @@ TITLE_MAX_LENGTH = 60
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    # Milliseconds, not seconds: conversations are ordered by updated_at, and
+    # two updates inside the same second would otherwise sort arbitrarily.
+    return datetime.now(timezone.utc).isoformat(timespec="milliseconds")
 
 
 def _loads(value: str | None) -> Any:

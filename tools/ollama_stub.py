@@ -229,6 +229,11 @@ class StubServer(ThreadingHTTPServer):
     daemon_threads = True
     verbose = False
 
+    def handle_error(self, request, client_address) -> None:
+        """A client disconnecting mid-stream is expected here, not an error."""
+        if self.verbose:
+            super().handle_error(request, client_address)
+
 
 def serve(port: int = 11434, *, delay: float = 0.02, verbose: bool = False) -> StubServer:
     """Start the stub in a background thread and return the server."""
