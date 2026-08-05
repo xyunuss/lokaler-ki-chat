@@ -12,8 +12,6 @@ documents you attach never leave your computer.
 
 ---
 
-![The chat interface in dark mode](assets/screenshot_ui.png)
-
 ## What it does
 
 - **Streams answers token by token**, with the model's own timings — tokens/s,
