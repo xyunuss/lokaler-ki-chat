@@ -1,0 +1,8 @@
+# Third-party code: not written here, and it should not count towards the
+# repository's language statistics or show up in diffs by default.
+static/vendor/** linguist-vendored
+static/vendor/** -diff
+
+# Keep line endings sane across platforms.
+* text=auto eol=lf
+*.png binary
